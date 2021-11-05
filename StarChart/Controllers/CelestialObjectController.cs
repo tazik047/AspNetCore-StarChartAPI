@@ -64,6 +64,73 @@ namespace StarChart.Controllers
             return Ok(celestial);
         }
 
+        [HttpPost]
+        public IActionResult Create([FromBody]CelestialObject model)
+        {
+            _context.CelestialObjects.Add(model);
+
+            _context.SaveChanges();
+
+            return CreatedAtRoute("GetById", new {id = model.Id}, model);
+        }
+
+        [HttpPut("{id}")]
+        public IActionResult Update(int id, [FromBody] CelestialObject model)
+        {
+            var celestial = _context.CelestialObjects.SingleOrDefault(p => p.Id == id);
+
+            if (celestial == null)
+            {
+                return NotFound();
+            }
+
+            celestial.Name = model.Name;
+            celestial.OrbitedObjectId = model.OrbitedObjectId;
+            celestial.OrbitalPeriod = model.OrbitalPeriod;
+
+            _context.CelestialObjects.Update(celestial);
+            _context.SaveChanges();
+
+            return NoContent();
+        }
+
+        [HttpPatch("{id}/{name}")]
+        public IActionResult RenameObject(int id, string name)
+        {
+            var celestial = _context.CelestialObjects.SingleOrDefault(p => p.Id == id);
+
+            if (celestial == null)
+            {
+                return NotFound();
+            }
+
+            celestial.Name = name;
+
+            _context.CelestialObjects.Update(celestial);
+            _context.SaveChanges();
+
+            return NoContent();
+        }
+
+        [HttpDelete("{id}")]
+        public IActionResult Delete(int id)
+        {
+            var celestial = _context
+                .CelestialObjects
+                .Where(p => p.Id == id || p.OrbitedObjectId == id)
+                .ToList();
+
+            if (celestial.Count == 0)
+            {
+                return NotFound();
+            }
+
+            _context.CelestialObjects.RemoveRange(celestial);
+            _context.SaveChanges();
+
+            return NoContent();
+        }
+
         private void PopulateSatellites(CelestialObject celestial)
         {
             celestial.Satellites = _context
